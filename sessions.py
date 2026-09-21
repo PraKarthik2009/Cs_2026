@@ -13,8 +13,6 @@ def detect_time_slot(moment=None):
     if 17 <= hour < 21:
         return "evening"
     return "night"
-
-
 def log_session(student_id, topic_id, duration_mins, confidence_before, confidence_after, energy_level, notes="", date_value=None, time_slot=None):
     sess_date = date_value or date.today().isoformat()
     slot = time_slot or detect_time_slot()
