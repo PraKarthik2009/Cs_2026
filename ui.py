@@ -1,6 +1,6 @@
 import os
-
-
+if os.name == "nt":
+    os.system("")
 _COLORS = {
     "cyan": "\033[96m",
     "green": "\033[92m",

@@ -8,8 +8,6 @@ from reports import export_to_csv, show_peak_performance_report, show_progress_t
 from sessions import log_session
 from student import prompt_float, prompt_integer, prompt_text, show_auth_menu
 from ui import banner, error, info, section, show_menu, success
-
-
 def _choose_topic(student):
     topics = fetch_topics(student_id=student["id"])
     if not topics:
