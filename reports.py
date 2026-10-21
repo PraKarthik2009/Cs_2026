@@ -157,7 +157,10 @@ def export_to_csv(student_id, export_type="all", output_path=None):
     if output_path:
         target = Path(output_path)
     else:
-        target = Path.cwd() / ("study_tracker_export_%s_%s.csv" % (export_type, timestamp))
+        project_folder = Path(__file__).resolve().parent
+        target = project_folder / (
+            "study_tracker_export_%s_%s.csv" % (export_type, timestamp)
+        )
     rows = []
 
     if export_type in {"all", "sessions"}:
@@ -168,7 +171,12 @@ def export_to_csv(student_id, export_type="all", output_path=None):
         rows.extend(_report_export_rows(student_id))
 
     if not rows:
-        rows = [{"message": "No data available for the selected export type"}]
+        rows = [
+            {
+                "record_type": "message",
+                "message": "No data available for the selected export type",
+            }
+        ]
 
     fieldnames = sorted({key for row in rows for key in row.keys()})
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -202,7 +210,12 @@ def _session_export_rows(student_id):
     rows = cursor.fetchall()
     cursor.close()
     con.close()
-    return rows
+    export_rows = []
+    for row in rows:
+        export_row = dict(row)
+        export_row["record_type"] = "session"
+        export_rows.append(export_row)
+    return export_rows
 
 
 def _assessment_export_rows(student_id):
@@ -224,7 +237,12 @@ def _assessment_export_rows(student_id):
     rows = cursor.fetchall()
     cursor.close()
     con.close()
-    return rows
+    export_rows = []
+    for row in rows:
+        export_row = dict(row)
+        export_row["record_type"] = "assessment"
+        export_rows.append(export_row)
+    return export_rows
 
 
 def _report_export_rows(student_id):
@@ -233,6 +251,7 @@ def _report_export_rows(student_id):
         report = stickiness_score(student_id, int(topic["id"]))
         rows.append(
             {
+                "record_type": "report",
                 "report_type": "stickiness",
                 "subject_name": report.get("subject_name"),
                 "topic_name": report.get("topic_name"),
