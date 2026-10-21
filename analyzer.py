@@ -4,6 +4,18 @@ from statistics import mean
 from db import fetch_assessments, fetch_sessions, fetch_topic_by_id, fetch_topics, get_connection
 
 
+def _stuck_topic_sort_key(item):
+    return item["stickiness_score"], -item["sessions"]
+
+
+def _peak_time_sort_key(item):
+    return item["average_gain"], item["session_count"]
+
+
+def _drain_pattern_sort_key(item):
+    return item["average_delta"], -item["transition_count"]
+
+
 def _clean_session_rows(student_id):
     rows = fetch_sessions(student_id=student_id)
     return [dict(row) for row in rows if row["time_slot"] != "baseline"]
@@ -110,7 +122,7 @@ def stuck_topics(student_id, min_sessions=2):
         if detail["sessions"] >= min_sessions and detail["stickiness_score"] <= 55:
             detail["topic_id"] = int(topic["id"])
             results.append(detail)
-    results.sort(key=lambda item: (item["stickiness_score"], -item["sessions"]))
+    results.sort(key=_stuck_topic_sort_key)
     return results
 
 
@@ -135,12 +147,14 @@ def peak_time_analysis(student_id):
                 "time_slot": time_slot,
                 "session_count": len(deltas),
                 "average_gain": round(mean(deltas), 2),
-                "average_energy": round(mean(energy[time_slot]), 2) if energy[time_slot] else None,
+                "average_energy": None,
                 "average_duration": round(mean(durations[time_slot]), 2),
             }
         )
+        if energy[time_slot]:
+            result[-1]["average_energy"] = round(mean(energy[time_slot]), 2)
 
-    result.sort(key=lambda item: (item["average_gain"], item["session_count"]), reverse=True)
+    result.sort(key=_peak_time_sort_key, reverse=True)
     return result
 
 
@@ -184,7 +198,7 @@ def drain_pattern(student_id):
                 }
             )
 
-    patterns.sort(key=lambda item: (item["average_delta"], -item["transition_count"]))
+    patterns.sort(key=_drain_pattern_sort_key)
     return patterns
 
 

@@ -118,8 +118,8 @@ def create_account():
             continue
         break
 
-    pw_hash = _password_hash(password)
-    student_id = save_student(name, "", "", username, pw_hash)
+    password_hash = _password_hash(password)
+    student_id = save_student(name, "", "", username, password_hash)
     collect_subjects_and_baseline(student_id)
     student = _student_to_dict(fetch_student_by_username(username))
     if student is None:
@@ -129,7 +129,7 @@ def create_account():
             "grade": "",
             "board": "",
             "username": username,
-            "password_hash": pw_hash,
+            "password_hash": password_hash,
         }
     return student
 

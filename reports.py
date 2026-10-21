@@ -18,7 +18,9 @@ except ImportError:
     tabulate = None
 
 
-console = Console() if Console else None
+console = None
+if Console:
+    console = Console()
 
 
 def _print(message):
@@ -34,7 +36,13 @@ def _print_table(title, headers, rows):
         for header in headers:
             table.add_column(header)
         for row in rows:
-            table.add_row(*["" if value is None else str(value) for value in row])
+            display_row = []
+            for value in row:
+                if value is None:
+                    display_row.append("")
+                else:
+                    display_row.append(str(value))
+            table.add_row(*display_row)
         console.print(table)
         return
 
@@ -45,7 +53,13 @@ def _print_table(title, headers, rows):
 
     _print(" | ".join(headers))
     for row in rows:
-        _print(" | ".join("" if value is None else str(value) for value in row))
+        display_row = []
+        for value in row:
+            if value is None:
+                display_row.append("")
+            else:
+                display_row.append(str(value))
+        _print(" | ".join(display_row))
 
 
 def show_topics(student_id):
@@ -140,7 +154,10 @@ def show_progress_timeline(student_id, topic_id):
 
 def export_to_csv(student_id, export_type="all", output_path=None):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    target = Path(output_path) if output_path else Path.cwd() / ("study_tracker_export_%s_%s.csv" % (export_type, timestamp))
+    if output_path:
+        target = Path(output_path)
+    else:
+        target = Path.cwd() / ("study_tracker_export_%s_%s.csv" % (export_type, timestamp))
     rows = []
 
     if export_type in {"all", "sessions"}:
@@ -154,6 +171,7 @@ def export_to_csv(student_id, export_type="all", output_path=None):
         rows = [{"message": "No data available for the selected export type"}]
 
     fieldnames = sorted({key for row in rows for key in row.keys()})
+    target.parent.mkdir(parents=True, exist_ok=True)
     with target.open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()

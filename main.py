@@ -36,7 +36,7 @@ def _log_session(student):
     confidence_after = prompt_float("Confidence after (0-10): ", minimum=0, maximum=10)
     energy_level = prompt_integer("Energy level (1-10): ", minimum=1, maximum=10)
     notes = prompt_text("Notes: ")
-    sess_id = log_session(
+    session_id = log_session(
         student_id=student["id"],
         topic_id=topic_id,
         duration_mins=duration,
@@ -45,7 +45,7 @@ def _log_session(student):
         energy_level=energy_level,
         notes=notes,
     )
-    success("Session saved with ID %s." % sess_id)
+    success("Session saved with ID %s." % session_id)
 
 
 def _log_assessment(student):
@@ -88,7 +88,10 @@ def _export_csv(student):
     if export_type is None:
         error("Invalid export choice.")
         return
-    export_to_csv(student["id"], export_type=export_type)
+    try:
+        export_to_csv(student["id"], export_type=export_type)
+    except OSError as export_error:
+        error("Could not write the CSV file: %s" % export_error)
 
 
 def main():
